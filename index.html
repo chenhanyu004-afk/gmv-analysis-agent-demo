@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>抖音 GMV 异动分析 Agent｜面试演示</title>
+<style>
+:root{--navy:#121a35;--purple:#6558f5;--red:#e34d67;--green:#12a779;--slate:#64748b;--bg:#f5f6fb}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft YaHei",Arial,sans-serif;color:#18213b;background:var(--bg)}
+header{background:linear-gradient(110deg,#101736,#4338ca);color:white;padding:34px max(5vw,24px)}h1{margin:0 0 8px;font-size:28px}.subtitle{opacity:.8;font-size:14px}main{max-width:1120px;margin:26px auto;padding:0 20px}.notice{background:#fff5f6;border:1px solid #ffd3da;border-radius:12px;padding:13px 16px;color:#9f1239;font-size:14px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:22px 0;gap:16px}.time{color:var(--slate);font-size:14px}.btn{border:0;background:var(--purple);color:#fff;padding:11px 17px;border-radius:9px;font-weight:700;cursor:pointer}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card,.panel{background:#fff;border-radius:14px;padding:18px;box-shadow:0 1px 2px #d9ddea}.label{color:var(--slate);font-size:13px}.value{font-size:26px;font-weight:800;margin:7px 0}.down{color:var(--red)}.up{color:var(--green)}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}.panel h2{font-size:17px;margin:0 0 16px}.reason{border-left:4px solid var(--purple);padding:9px 12px;background:#f8f7ff;margin:10px 0;font-size:14px}.tag{display:inline-block;color:#6d28d9;background:#ede9fe;border-radius:99px;padding:3px 8px;font-size:12px;font-weight:bold}.barrow{display:grid;grid-template-columns:70px 1fr 90px;align-items:center;gap:10px;margin:15px 0;font-size:14px}.bar{height:10px;background:#edeef7;border-radius:9px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#7668ff,#d75cf2);border-radius:9px}table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:11px 6px;border-bottom:1px solid #edf0f6}th{color:var(--slate);font-weight:500}.actions li{margin:10px 0;line-height:1.5}.foot{font-size:12px;color:var(--slate);margin:18px 0}@media(max-width:760px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.toolbar{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><h1>抖音 GMV 异动分析 Agent</h1><div class="subtitle">面试演示｜从预警、因子拆解到可执行运营动作</div></header>
+<main>
+<div class="notice"><b>合成演示数据：</b>本页面用于展示 Agent 的诊断流程，不代表真实抖音经营结果。</div>
+<div class="toolbar"><div><b id="level">P1 预警</b><div class="time">数据截至：2026-08-23 11:05｜对比：昨日同小时</div></div><button class="btn" onclick="runDemo()">↻ 重新运行分析</button></div>
+<section class="cards">
+<div class="card"><div class="label">支付 GMV</div><div class="value" id="gmv">¥100,000</div><div class="down" id="delta">↓ ¥60,000（-37.5%）</div></div>
+<div class="card"><div class="label">主因</div><div class="value">直播供给</div><div class="label">“夏季清仓专场”开播不足</div></div>
+<div class="card"><div class="label">最大影响渠道</div><div class="value">直播</div><div class="down">贡献 -¥50,000</div></div>
+<div class="card"><div class="label">建议响应</div><div class="value">30 分钟</div><div class="label">核对开播、库存与优惠</div></div>
+</section>
+<section class="grid">
+<div class="panel"><h2>GMV 因子拆解</h2><div id="factors"></div><p class="foot">GMV = 支付买家数 × 人均支付件数 × 客单价</p></div>
+<div class="panel"><h2>根因判断</h2><div id="causes"></div></div>
+<div class="panel"><h2>波动贡献</h2><div id="bars"></div></div>
+<div class="panel"><h2>立即行动</h2><ol class="actions" id="actions"></ol></div>
+</section>
+<section class="panel" style="margin-top:18px"><h2>面试讲解话术</h2><p>“Agent 先以昨日同小时为基线触发 GMV 预警，再拆解买家数、件单数和客单价。随后在渠道、直播间、达人、SKU 四个维度计算波动贡献，并结合库存/履约等经营健康度生成按置信度排序的根因和动作建议。”</p></section>
+</main>
+<script>
+const data={data_freshness:"2026-08-23 11:05",rows:[
+ {channel:"直播",live_room_id:"夏季清仓专场",anchor_id:"主播小夏",sku_id:"T恤-A123",gmv_paid:60000,baseline_gmv_paid:110000,paying_buyers:600,baseline_paying_buyers:1000,orders_paid:650,baseline_orders_paid:1100,stock:0},
+ {channel:"商城",live_room_id:null,anchor_id:null,sku_id:"防晒衣-B208",gmv_paid:40000,baseline_gmv_paid:50000,paying_buyers:400,baseline_paying_buyers:500,orders_paid:420,baseline_orders_paid:520,stock:80}
+]};
+const yuan=n=>"¥"+Math.abs(n).toLocaleString("zh-CN",{maximumFractionDigits:0});
+function runDemo(){render({alert:{level:"P1",current_gmv:100000,baseline_gmv:160000,delta_gmv:-60000,relative_change:-0.375,data_freshness:"2026-08-23 11:05"},factor_decomposition:{"支付买家数":{current:1000,baseline:1500,change:-0.3333},"人均支付件数":{current:1.07,baseline:1.08,change:-0.0093},"客单价":{current:93.9,baseline:98.8,change:-0.0496}},top_contributors:{channel:[{channel:"直播",delta_gmv:-50000},{channel:"商城",delta_gmv:-10000}]},root_causes:[{confidence:"高",hypothesis:"直播渠道的 夏季清仓专场 是主要波动来源",impact_gmv:-50000},{confidence:"中",hypothesis:"核心 SKU T恤-A123 缺货，可能抑制支付转化",impact_gmv:-14000}],recommended_actions:["30分钟内：核对异常对象的开播、库存、价格、优惠与支付链路状态。","当日：为主波动对象设置库存、开播时长和转化率告警。"]})}
+function render(r){
+ const a=r.alert;document.querySelector("#level").textContent=a.level+" 预警";document.querySelector("#gmv").textContent=yuan(a.current_gmv);document.querySelector("#delta").textContent="↓ "+yuan(a.delta_gmv)+"（"+(a.relative_change*100).toFixed(1)+"%）";
+ const factors=Object.entries(r.factor_decomposition);document.querySelector("#factors").innerHTML=factors.map(([k,v])=>'<div class="reason"><b>'+k+'</b><br>当前 '+v.current.toLocaleString()+"｜基线 "+v.baseline.toLocaleString()+' <span class="down"> '+((v.change||0)*100).toFixed(1)+'%</span></div>').join("");
+ document.querySelector("#causes").innerHTML=r.root_causes.map(x=>'<div class="reason"><span class="tag">'+x.confidence+'置信度</span><br><b>'+x.hypothesis+'</b><br>影响：'+(x.impact_gmv===null?"待量化":yuan(x.impact_gmv))+"</div>").join("");
+ const channels=r.top_contributors.channel;const max=Math.max(...channels.map(x=>Math.abs(x.delta_gmv)));document.querySelector("#bars").innerHTML=channels.map(x=>'<div class="barrow"><b>'+x.channel+'</b><div class="bar"><div class="fill" style="width:'+(Math.abs(x.delta_gmv)/max*100)+'%"></div></div><span class="down">-'+yuan(Math.abs(x.delta_gmv))+"</span></div>").join("");
+ document.querySelector("#actions").innerHTML=r.recommended_actions.map(x=>"<li>"+x+"</li>").join("");
+}
+runDemo();
+</script></body></html>
