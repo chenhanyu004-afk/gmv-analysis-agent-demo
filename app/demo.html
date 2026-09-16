@@ -1,47 +1,91 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>抖音 GMV 异动分析 Agent｜面试演示</title>
-<style>
-:root{--navy:#121a35;--purple:#6558f5;--red:#e34d67;--green:#12a779;--slate:#64748b;--bg:#f5f6fb}
-*{box-sizing:border-box}body{margin:0;font-family:"Microsoft YaHei",Arial,sans-serif;color:#18213b;background:var(--bg)}
-header{background:linear-gradient(110deg,#101736,#4338ca);color:white;padding:34px max(5vw,24px)}h1{margin:0 0 8px;font-size:28px}.subtitle{opacity:.8;font-size:14px}main{max-width:1120px;margin:26px auto;padding:0 20px}.notice{background:#fff5f6;border:1px solid #ffd3da;border-radius:12px;padding:13px 16px;color:#9f1239;font-size:14px}
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin:22px 0;gap:16px}.time{color:var(--slate);font-size:14px}.btn{border:0;background:var(--purple);color:#fff;padding:11px 17px;border-radius:9px;font-weight:700;cursor:pointer}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card,.panel{background:#fff;border-radius:14px;padding:18px;box-shadow:0 1px 2px #d9ddea}.label{color:var(--slate);font-size:13px}.value{font-size:26px;font-weight:800;margin:7px 0}.down{color:var(--red)}.up{color:var(--green)}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}.panel h2{font-size:17px;margin:0 0 16px}.reason{border-left:4px solid var(--purple);padding:9px 12px;background:#f8f7ff;margin:10px 0;font-size:14px}.tag{display:inline-block;color:#6d28d9;background:#ede9fe;border-radius:99px;padding:3px 8px;font-size:12px;font-weight:bold}.barrow{display:grid;grid-template-columns:70px 1fr 90px;align-items:center;gap:10px;margin:15px 0;font-size:14px}.bar{height:10px;background:#edeef7;border-radius:9px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#7668ff,#d75cf2);border-radius:9px}table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:11px 6px;border-bottom:1px solid #edf0f6}th{color:var(--slate);font-weight:500}.actions li{margin:10px 0;line-height:1.5}.foot{font-size:12px;color:var(--slate);margin:18px 0}@media(max-width:760px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.toolbar{align-items:flex-start;flex-direction:column}}
-</style>
-</head>
-<body>
-<header><h1>抖音 GMV 异动分析 Agent</h1><div class="subtitle">面试演示｜从预警、因子拆解到可执行运营动作</div></header>
-<main>
-<div class="notice"><b>合成演示数据：</b>本页面用于展示 Agent 的诊断流程，不代表真实抖音经营结果。</div>
-<div class="toolbar"><div><b id="level">P1 预警</b><div class="time">数据截至：2026-08-23 11:05｜对比：昨日同小时</div></div><button class="btn" onclick="runDemo()">↻ 重新运行分析</button></div>
-<section class="cards">
-<div class="card"><div class="label">支付 GMV</div><div class="value" id="gmv">¥100,000</div><div class="down" id="delta">↓ ¥60,000（-37.5%）</div></div>
-<div class="card"><div class="label">主因</div><div class="value">直播供给</div><div class="label">“夏季清仓专场”开播不足</div></div>
-<div class="card"><div class="label">最大影响渠道</div><div class="value">直播</div><div class="down">贡献 -¥50,000</div></div>
-<div class="card"><div class="label">建议响应</div><div class="value">30 分钟</div><div class="label">核对开播、库存与优惠</div></div>
-</section>
-<section class="grid">
-<div class="panel"><h2>GMV 因子拆解</h2><div id="factors"></div><p class="foot">GMV = 支付买家数 × 人均支付件数 × 客单价</p></div>
-<div class="panel"><h2>根因判断</h2><div id="causes"></div></div>
-<div class="panel"><h2>波动贡献</h2><div id="bars"></div></div>
-<div class="panel"><h2>立即行动</h2><ol class="actions" id="actions"></ol></div>
-</section>
-<section class="panel" style="margin-top:18px"><h2>面试讲解话术</h2><p>“Agent 先以昨日同小时为基线触发 GMV 预警，再拆解买家数、件单数和客单价。随后在渠道、直播间、达人、SKU 四个维度计算波动贡献，并结合库存/履约等经营健康度生成按置信度排序的根因和动作建议。”</p></section>
-</main>
-<script>
-const data={data_freshness:"2026-08-23 11:05",rows:[
- {channel:"直播",live_room_id:"夏季清仓专场",anchor_id:"主播小夏",sku_id:"T恤-A123",gmv_paid:60000,baseline_gmv_paid:110000,paying_buyers:600,baseline_paying_buyers:1000,orders_paid:650,baseline_orders_paid:1100,stock:0},
- {channel:"商城",live_room_id:null,anchor_id:null,sku_id:"防晒衣-B208",gmv_paid:40000,baseline_gmv_paid:50000,paying_buyers:400,baseline_paying_buyers:500,orders_paid:420,baseline_orders_paid:520,stock:80}
-]};
-const yuan=n=>"¥"+Math.abs(n).toLocaleString("zh-CN",{maximumFractionDigits:0});
-function runDemo(){fetch("/analyze",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).then(r=>r.json()).then(render).catch(()=>alert("服务未启动，请执行 README 中的启动命令。"))}
-function render(r){
- const a=r.alert;document.querySelector("#level").textContent=a.level+" 预警";document.querySelector("#gmv").textContent=yuan(a.current_gmv);document.querySelector("#delta").textContent="↓ "+yuan(a.delta_gmv)+"（"+(a.relative_change*100).toFixed(1)+"%）";
- const factors=Object.entries(r.factor_decomposition);document.querySelector("#factors").innerHTML=factors.map(([k,v])=>'<div class="reason"><b>'+k+'</b><br>当前 '+v.current.toLocaleString()+"｜基线 "+v.baseline.toLocaleString()+' <span class="down"> '+((v.change||0)*100).toFixed(1)+'%</span></div>').join("");
- document.querySelector("#causes").innerHTML=r.root_causes.map(x=>'<div class="reason"><span class="tag">'+x.confidence+'置信度</span><br><b>'+x.hypothesis+'</b><br>影响：'+(x.impact_gmv===null?"待量化":yuan(x.impact_gmv))+"</div>").join("");
- const channels=r.top_contributors.channel;const max=Math.max(...channels.map(x=>Math.abs(x.delta_gmv)));document.querySelector("#bars").innerHTML=channels.map(x=>'<div class="barrow"><b>'+x.channel+'</b><div class="bar"><div class="fill" style="width:'+(Math.abs(x.delta_gmv)/max*100)+'%"></div></div><span class="down">-'+yuan(Math.abs(x.delta_gmv))+"</span></div>").join("");
- document.querySelector("#actions").innerHTML=r.recommended_actions.map(x=>"<li>"+x+"</li>").join("");
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GMV 诊断工作台</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5fa;color:#19253b;font:15px/1.65 system-ui,"Microsoft YaHei",sans-serif}header{background:#152440;color:white;padding:28px max(24px,5vw)}h1{margin:0;font-size:28px}header p{margin:5px 0;color:#c5d3e6}main{max-width:1280px;margin:24px auto;padding:0 20px}.grid{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:20px}.panel{background:white;border:1px solid #dde4ef;border-radius:12px;padding:20px;margin-bottom:16px}h2{font-size:18px;margin:0 0 12px}h3{font-size:15px}button,select,input{font:inherit;padding:9px;border:1px solid #b9c6dd;border-radius:6px}button{cursor:pointer;background:#315ed9;color:white;border:0}button.secondary{background:#e9eefb;color:#264378}textarea{width:100%;height:320px;font:12px/1.5 Consolas,monospace;padding:10px;border:1px solid #bcc9df;border-radius:6px}label{display:block;margin:10px 0}.hint{font-size:13px;color:#58677d}.badge{background:#e5edff;color:#234eaa;padding:4px 9px;border-radius:4px}.warn{background:#fff4df;padding:12px;border-left:3px solid #c57910}.bad{background:#ffeded;padding:12px;border-left:3px solid #c33939}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.cards b{display:block;font-size:23px}.cards small{color:#5e6c7f}.table{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:13px}th,td{text-align:left;border-bottom:1px solid #e4e9f1;padding:10px 8px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.log{border-left:3px solid #345fce;padding-left:12px;margin:12px 0}pre{white-space:pre-wrap;word-break:break-word}details{margin:14px 0}a{color:#315ed9}input[type=number]{width:105px}#message{color:#9d3434}.evidence{padding:14px;border:1px solid #d8e1ef;margin:12px 0;border-radius:8px}@media(max-width:800px){.grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}h1{font-size:24px}}@media print{aside,button{display:none}.grid{display:block}}
+</style></head><body><header><h1>GMV 诊断工作台</h1><p>校验数据 → 检测变化 → 量化贡献 → 核验经营证据 → 输出处理建议</p></header><main><div class="panel"><b>可复算的规则诊断原型</b> · <span id="sourceBadge" class="badge">合成样本</span><p class="hint">浏览器本地计算，不调用大模型或抖店接口。输入数据不会上传。可用于口径统一后的离线排查；尚未完成真实业务回测，不代表已验证的生产级自主 Agent。</p></div><div class="grid"><aside><section class="panel"><h2>输入与诊断条件</h2><label>验证案例 <select id="scenario"><option value="drop">GMV 下滑 + 缺货证据</option><option value="normal">未触发预警</option><option value="missing">有下滑、无经营证据</option><option value="quality">总盘对账失败</option><option value="growth">增长与下滑相互抵消</option></select></label><p class="hint">样本时间：2026-08-23 10:00–11:00；基线：前一日同小时。仅用于检验计算路径。</p><label>相对变化阈值 <input id="relative" type="number" min="0" max="100" value="20"> %</label><label>绝对变化阈值 <input id="absolute" type="number" min="0" value="5000"> 元</label><label>导入 JSON <input id="file" type="file" accept=".json,application/json"></label><details><summary>查看 / 编辑输入数据</summary><textarea id="input" aria-label="诊断输入JSON"></textarea><button id="downloadInput" class="secondary">下载当前输入</button></details><div class="row"><button id="run">运行诊断</button><button id="export" class="secondary" disabled>导出诊断凭据</button></div><p id="message" role="alert"></p><p id="dirty" class="hint"></p></section><section class="panel"><h2>指标合同</h2><p>支付 GMV = 支付订单数 × 每单支付金额。金额以人民币元计，不扣退款。</p><p class="hint">明细为「渠道 × SKU」的互斥桶。每个订单只归入一个桶；多 SKU 订单必须采用一致的唯一归属规则。若采用商品行数量，请勿当作订单数导入。独立总盘必须与明细精确对账。</p><p class="hint">跨渠道买家不能直接相加，本版不使用买家数。输入历史快照时，数据时效相对于 as_of 校验，不表示今天的实时数据。</p></section></aside><div id="results" aria-live="polite"></div></div></main>
+<script>/* Pure deterministic diagnostic engine. No model, network or hidden state. */
+function diagnose(input) {
+  const errors=[], warnings=[];
+  const number=(x)=>typeof x==='number' && Number.isFinite(x) && x>=0;
+  const meta=input?.meta||{}, rows=input?.rows;
+  if(!Array.isArray(rows)||!rows.length) return {status:'blocked',errors:['没有可分析的数据行。'],warnings};
+  if(meta.metric!=='paid_gmv' || meta.currency!=='CNY') errors.push('只支持人民币支付 GMV；退款不在本指标内。');
+  if(meta.exclusive!==true) errors.push('需确认每个订单只归入一个明细桶，金额和订单数均不可重复计入。');
+  if(meta.comparable!==true) errors.push('需确认两期时长、口径、活动类型可比。');
+  if(meta.complete!==true) errors.push('数据未声明完整，停止经营归因。');
+  const dates=['current_start','current_end','baseline_start','baseline_end','data_at','as_of'];
+  const t={}; for(const k of dates){t[k]=Date.parse(meta[k]); if(!Number.isFinite(t[k])) errors.push('缺少有效时间：'+k);}
+  if(dates.every(k=>Number.isFinite(t[k]))) {
+    const duration=t.current_end-t.current_start, base=t.baseline_end-t.baseline_start;
+    if(duration<=0||base<=0||duration!==base||t.baseline_end>t.current_start) errors.push('两期需互不重叠且等长，结束时间应晚于开始时间。');
+    if(t.data_at<t.current_end||t.as_of<t.data_at||t.as_of-t.data_at>15*60000) errors.push('相对于诊断时点，数据未覆盖窗口、超过15分钟或时间顺序错误。');
+  }
+  const seen=new Set();
+  rows.forEach((r,i)=>{
+    if(!r||typeof r!=='object'){errors.push('第'+(i+1)+'行格式错误');return;}
+    for(const k of ['channel','sku']) if(typeof r[k]!=='string'||!r[k].trim()) errors.push('第'+(i+1)+'行缺少 '+k);
+    const key=JSON.stringify([r.channel,r.sku]); if(seen.has(key)) errors.push('重复明细桶：'+key);seen.add(key);
+    for(const k of ['gmv','base_gmv','orders','base_orders']) if(!number(r[k])) errors.push('第'+(i+1)+'行 '+k+' 必须是非负有限数值');
+    for(const k of ['orders','base_orders']) if(!Number.isInteger(r[k])) errors.push('订单数必须是整数');
+    if((r.orders===0&&r.gmv>0)||(r.base_orders===0&&r.base_gmv>0)) errors.push('存在有金额、无订单的行');
+  });
+  const cfg=input.config||{relative:0.2,absolute:5000};
+  if(!number(cfg.relative)||!number(cfg.absolute)||cfg.relative>1) errors.push('阈值无效：相对阈值0–1，绝对阈值非负');
+  if(errors.length)return {status:'blocked',errors:[...new Set(errors)],warnings};
+  const sum=k=>rows.reduce((s,r)=>s+r[k],0);
+  const current=sum('gmv'),baseline=sum('base_gmv'),orders=sum('orders'),baseOrders=sum('base_orders'),delta=current-baseline;
+  if(!number(meta.control_current)||!number(meta.control_baseline)) errors.push('缺少两期独立总盘对账值');
+  else if(Math.abs(meta.control_current-current)>.01||Math.abs(meta.control_baseline-baseline)>.01) errors.push('明细与总盘不一致：请补齐数据或修正口径后重试');
+  if(errors.length)return {status:'blocked',errors,warnings};
+  const rate=baseline?delta/baseline:null;
+  const alert=rate!==null && Math.abs(rate)>=cfg.relative && Math.abs(delta)>=cfg.absolute;
+  if(rate===null)warnings.push('基线为0：无法计算相对变化；需另设冷启动基线。');
+  const factors=[];
+  if(orders>0&&baseOrders>0){
+    const a=current/orders,b=baseline/baseOrders;
+    factors.push({name:'支付订单数',current:orders,baseline:baseOrders,effect:(orders-baseOrders)*(a+b)/2});
+    factors.push({name:'每单支付金额（元/单）',current:a,baseline:b,effect:(a-b)*(orders+baseOrders)/2});
+  }else warnings.push('存在零订单期：均单金额无定义，跳过乘法分解。');
+  const contributions={};
+  for(const dim of ['channel','sku']){
+    const g=new Map(); for(const r of rows){const a=g.get(r[dim])||{name:r[dim],current:0,baseline:0};a.current+=r.gmv;a.baseline+=r.base_gmv;g.set(r[dim],a);}
+    contributions[dim]=[...g.values()].map(r=>({...r,delta:r.current-r.baseline,share:delta?(r.current-r.baseline)/delta:null})).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+  }
+  const hypotheses=[];
+  if(input.evidence!==undefined&&!Array.isArray(input.evidence)) warnings.push('经营证据必须是数组；本次未采用。');
+  for(const e of (Array.isArray(input.evidence)?input.evidence:[])){
+    if(!e||typeof e!=='object'){warnings.push('无效经营证据，未采用。');continue;}
+    const r=rows.find(r=>r.channel===e.channel&&r.sku===e.sku);
+    const at=Date.parse(e.at);
+    if(!r || !Number.isFinite(at)||at<t.current_start||at>=t.current_end||typeof e.source!=='string'||!e.source.trim()) {warnings.push('一条经营证据缺少来源、对象或窗口内时间，未采用。');continue;}
+    if(r.gmv>=r.base_gmv)continue;
+    if(e.type==='stockout'&&number(e.stock)&&e.stock===0) hypotheses.push({object:e.channel+' / '+e.sku,hypothesis:'缺货可能抑制成交',evidence:'库存为0；记录时间 '+e.at,source:e.source,observed_delta:r.gmv-r.base_gmv,causal_effect:null,action:'供应链核对库存事件；运营检查缺货前后商品点击与支付率，并对比未缺货商品。'});
+    if(e.type==='live_minutes'&&number(e.current)&&number(e.baseline)&&e.baseline>0&&e.current<e.baseline)hypotheses.push({object:e.channel+' / '+e.sku,hypothesis:'开播时长减少可能影响成交',evidence:'开播 '+e.current+' 分钟，基线 '+e.baseline+' 分钟；记录时间 '+e.at,source:e.source,observed_delta:r.gmv-r.base_gmv,causal_effect:null,action:'直播运营核对排班与推流；补齐分时流量、投放变化和开播时段可比性。'});
+  }
+  warnings.push('元数据可比性和完整性由输入方声明；本工具无法独立核验源系统。','仅与一个指定窗口比较，不提供统计显著性或异常概率。','跨维度贡献存在重叠，不可相加；经营关联不等于因果关系。');
+  return {version:'2.0',status:'ready',errors:[],warnings,current,baseline,delta,rate,alert,orders,baseOrders,factors,residual:factors.length?delta-factors.reduce((s,f)=>s+f.effect,0):null,contributions,hypotheses,conclusion:rate===null?'基线不足，不能判定相对异常':alert?'超过业务阈值，需核验经营原因':'未超过配置的双重阈值；不代表统计上正常',causal_status:hypotheses.length?'存在待验证的经营假设；因果影响金额未识别':'经营证据不足，不能确认原因',as_of:meta.as_of};
 }
-runDemo();
-</script></body></html>
+if(typeof module!=='undefined')module.exports={diagnose};
+
+</script><script>
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>n===null?'未识别':n.toLocaleString('zh-CN',{maximumFractionDigits:2}), pct=n=>n===null?'无定义':(n*100).toFixed(2)+'%';
+const sample={meta:{metric:'paid_gmv',currency:'CNY',exclusive:true,comparable:true,complete:true,current_start:'2026-08-23T10:00:00+08:00',current_end:'2026-08-23T11:00:00+08:00',baseline_start:'2026-08-22T10:00:00+08:00',baseline_end:'2026-08-22T11:00:00+08:00',data_at:'2026-08-23T11:05:00+08:00',as_of:'2026-08-23T11:06:00+08:00',control_current:100000,control_baseline:160000},rows:[{channel:'直播',sku:'A123',gmv:60000,base_gmv:110000,orders:650,base_orders:1100},{channel:'商城',sku:'B208',gmv:40000,base_gmv:50000,orders:420,base_orders:520}],evidence:[{type:'stockout',channel:'直播',sku:'A123',at:'2026-08-23T10:12:00+08:00',stock:0,source:'合成库存事件 E001'}]};
+let last=null,source='合成样本';
+function dirty(){last=null;$('export').disabled=true;$('dirty').textContent='输入已变化，请运行诊断；右侧是上次结果。';}
+function load(){const d=structuredClone(sample),k=$('scenario').value;if(k==='normal'){d.rows[0].gmv=108000;d.rows[0].orders=1080;d.rows[1].gmv=49000;d.rows[1].orders=510;d.meta.control_current=157000;d.evidence=[];}if(k==='missing')d.evidence=[];if(k==='quality')d.meta.control_current=125000;if(k==='growth'){d.rows[1].gmv=110000;d.rows[1].orders=1100;d.meta.control_current=170000;}source='合成样本';$('sourceBadge').textContent=source;$('input').value=JSON.stringify(d,null,2);dirty();run();}
+function table(head,rows){return '<div class="table"><table><thead><tr>'+head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
+function panel(title,body){return '<section class="panel"><h2>'+title+'</h2>'+body+'</section>';}
+function run(){try{const input=JSON.parse($('input').value);input.config={relative:Number($('relative').value)/100,absolute:Number($('absolute').value)};const r=diagnose(input);$('message').textContent='';$('dirty').textContent='已按当前输入重算。';last={generated_at:new Date().toISOString(),source,input,result:r};$('export').disabled=false;
+if(r.status==='blocked'){$('results').innerHTML=panel('01 · 数据校验不通过','<div class="bad">已停止异动检测与经营归因。</div><ul>'+r.errors.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul><p>先修复这些数据问题，再运行诊断。</p>');return;}
+let html=panel('01 · 数据质量与范围','<span class="badge">结构与对账检查通过</span><p>检查了字段、非负值、重复桶、窗口长度、数据时效和独立总盘。源系统真实性未核验。</p><p class="hint">'+esc(source)+' · 诊断时点 '+esc(input.meta.as_of)+'<br>当前 '+esc(input.meta.current_start)+' — '+esc(input.meta.current_end)+'<br>基线 '+esc(input.meta.baseline_start)+' — '+esc(input.meta.baseline_end)+'</p>');
+html+=panel('02 · 是否触发业务异常','<div class="cards"><div><small>当前支付 GMV / 元</small><b>'+money(r.current)+'</b></div><div><small>基线 / 元</small><b>'+money(r.baseline)+'</b></div><div><small>差额 / 元</small><b>'+money(r.delta)+'</b>'+pct(r.rate)+'</div></div><p><b>'+esc(r.conclusion)+'</b></p><p class="hint">判定：|变化率| ≥ '+pct(input.config.relative)+' 且 |差额| ≥ '+money(input.config.absolute)+' 元。不是统计置信度。</p>');
+html+=panel('03 · GMV 算术拆解',r.factors.length?table(['因子','基线','当前','分摊变化 / 元'],r.factors.map(f=>[f.name,money(f.baseline),money(f.current),money(f.effect)]))+'<p>对账残差：'+money(Math.abs(r.residual)<1e-8?0:r.residual)+' 元。</p><details><summary>查看计算方法</summary><p>采用两个替换顺序的平均值（对称分摊）。订单效应 = Δ订单 × 两期均单金额均值；均单金额效应 = Δ均单金额 × 两期订单均值。两项严格等于 GMV 差额；此分摊不是因果效应。</p></details>':'存在零订单期，不进行无定义的均单金额分解。');
+html+=panel('04 · 波动集中在哪里',Object.entries(r.contributions).map(([dim,v])=>'<h3>'+({channel:'渠道',sku:'SKU'}[dim])+'</h3>'+table(['对象','基线 GMV','当前 GMV','变化 / 元','占净变化'],v.map(x=>[x.name,money(x.baseline),money(x.current),money(x.delta),pct(x.share)]))).join('')+'<p class="hint">占净变化 = 对象差额 / 总盘差额，可为负或超过100%。不同维度是同一变化的不同切面，不可叠加。</p>');
+html+=panel('05 · 经营原因是否有证据','<div class="warn">'+esc(r.causal_status)+'</div>'+r.hypotheses.map(h=>'<div class="evidence"><b>'+esc(h.object)+'：'+esc(h.hypothesis)+'</b><p>证据：'+esc(h.evidence)+'<br>来源（输入方提供）：'+esc(h.source)+'</p><p>该桶观察到的 GMV 变化 '+money(h.observed_delta)+' 元；原因造成的损失：<b>未识别</b>。</p><p>待验证：'+esc(h.action)+'</p></div>').join('')+(!r.hypotheses.length?'<p>需要同对象、同时间窗的库存、直播或投放事件。不能从渠道贡献直接推出开播不足。</p>':'')+'<p class="hint">匹配对象、时间和事件值，只能支持关联假设。需对照组、分时变化与替代解释验证后，才可谈因果金额；本版不生成置信度百分比。</p>');
+html+=panel('06 · 处理建议与使用边界','<p>'+ (r.alert?'运营优先核对贡献最大的对象；有事件证据时按上方待验证项排查，验证前不自动调整投放或库存。':'未触发总体预警：复核抵消项与业务阈值；暂不据此发起紧急操作。')+'</p><ul>'+r.warnings.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul><details><summary>可审计的执行记录</summary><div class="log">数据校验 → 总盘对账 → 阈值检测 → 对称分摊 → 维度汇总 → 事件匹配</div><p>每次导出保留完整输入、条件、公式结果和版本。这里展示规则执行依据，并非大模型思维过程。</p></details>');$('results').innerHTML=html;
+}catch(e){last=null;$('export').disabled=true;$('message').textContent='输入不可解析：'+e.message;$('results').innerHTML=panel('无法分析','请检查输入格式。');}}
+function download(obj,name){const u=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+$('scenario').onchange=load;$('run').onclick=run;$('input').oninput=()=>{source='用户编辑数据（来源未核验）';$('sourceBadge').textContent=source;dirty();};for(const k of ['relative','absolute'])$(k).oninput=dirty;
+$('export').onclick=()=>last&&download(last,'gmv-diagnosis.json');$('downloadInput').onclick=()=>{try{download(JSON.parse($('input').value),'gmv-input.json')}catch(e){$('message').textContent=e.message;}};
+$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>2e6){$('message').textContent='文件请限制在2MB以内';return;}try{const d=JSON.parse(await f.text());$('input').value=JSON.stringify(d,null,2);source='导入数据（来源未核验）';$('sourceBadge').textContent=source;dirty();run();}catch(err){$('message').textContent='文件不可解析：'+err.message;}};load();
+</script><style>aside,#results,.panel{min-width:0}input[type=file],select{max-width:100%}p,li,.evidence{overflow-wrap:anywhere}</style></body></html>
+
